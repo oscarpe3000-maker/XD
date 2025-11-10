@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>El Cuarto Quinteto Developers .com — Tienda Neon</title>
+  <meta name="description" content="El Cuarto Quinteto Developers .com: tienda virtual de un grupo desarrollador de juegos y aplicaciones Android. Estética neon, HTML5 Canvas y JavaScript puro." />
+  <style>
+    :root{
+      --bg:#070b14;
+      --panel:#0d1220;
+      --neon:#00f0ff;
+      --neon-2:#ff00f7;
+      --text:#e9f1ff;
+      --muted:#9fb0c3;
+      --accent:#48ff9b;
+      --danger:#ff4d6d;
+      --shadow:0 10px 30px rgba(0,0,0,.35);
+      --radius:18px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; background:radial-gradient(1200px 1200px at 10% 0%, #0a1130 0%, var(--bg) 55%), var(--bg);
+      color:var(--text); font:500 16px/1.6 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif;
+      overflow-x:hidden;
+    }
+
+    /* Canvas fondo */
+    #fx{
+      position:fixed; inset:0; z-index:-1; filter:drop-shadow(0 0 6px rgba(0,255,255,.35));
+    }
+
+    /* Glow helpers */
+    .neon{
+      text-shadow:0 0 12px var(--neon), 0 0 28px var(--neon);
+    }
+    .neon2{ text-shadow:0 0 12px var(--neon-2), 0 0 28px var(--neon-2);}    
+    .glow{ box-shadow:0 0 0 2px color-mix(in oklab, var(--neon) 40%, transparent), 0 0 40px color-mix(in oklab, var(--neon) 35%, transparent);}
+
+    header{
+      position:sticky; top:0; z-index:20; backdrop-filter:blur(10px) saturate(120%);
+      background:linear-gradient(180deg, rgba(5,10,20,.75), rgba(5,10,20,.35));
+      border-bottom:1px solid color-mix(in oklab, var(--neon) 15%, transparent);
+    }
+    .wrap{ width:min(1200px, 92vw); margin-inline:auto; }
+
+    .nav{
+      display:flex; align-items:center; justify-content:space-between; padding:14px 0;
+    }
+    .brand{
+      display:flex; gap:12px; align-items:center; letter-spacing:.2px; text-transform:uppercase; font-weight:800;
+    }
+    .logo{
+      width:42px; height:42px; border-radius:12px; background: conic-gradient(from 0deg, var(--neon), var(--neon-2), var(--accent), var(--neon));
+      position:relative; isolation:isolate; box-shadow:0 0 22px rgba(0,255,255,.4) inset, 0 0 32px rgba(255,0,247,.25);
+    }
+    .logo::after{
+      content:""; position:absolute; inset:4px; border-radius:10px; background:radial-gradient(250px 90px at 20% 10%, rgba(255,255,255,.35), transparent 60%),
+      linear-gradient(135deg, rgba(0,0,0,.45), rgba(0,0,0,.1));
+    }
+
+    .nav a{ color:var(--muted); text-decoration:none; margin-left:18px; border-bottom:2px solid transparent; padding-bottom:4px; }
+    .nav a:hover{ color:var(--text); border-color:color-mix(in oklab, var(--neon) 40%, transparent); }
+
+    /* Hero */
+    .hero{
+      position:relative; padding:72px 0 32px; display:grid; gap:24px; grid-template-columns:1.25fr .75fr; align-items:center;
+    }
+    .hero h1{ font-size:clamp(28px, 3.8vw, 56px); line-height:1.05; margin:0 0 10px; }
+    .hero p{ color:var(--muted); margin:0 0 16px; }
+    .cta{ display:flex; gap:14px; flex-wrap:wrap; }
+    .btn{
+      appearance:none; cursor:pointer; border:none; padding:12px 18px; border-radius:14px; font-weight:750; letter-spacing:.3px;
+      background:linear-gradient(90deg, color-mix(in oklab, var(--neon) 25%, transparent), color-mix(in oklab, var(--neon-2) 25%, transparent));
+      color:var(--text); box-shadow:var(--shadow); transition:transform .12s ease, box-shadow .12s ease, filter .12s ease;
+    }
+    .btn:hover{ transform:translateY(-1px); filter:saturate(120%); box-shadow:0 12px 34px rgba(0,255,255,.18), 0 18px 40px rgba(255,0,247,.15); }
+    .btn.ghost{ background:transparent; border:1px solid color-mix(in oklab, var(--neon) 30%, transparent); color:var(--text); }
+
+    .hero-card{
+      background:linear-gradient(180deg, rgba(12,18,38,.8), rgba(12,18,38,.6));
+      border:1px solid color-mix(in oklab, var(--neon) 15%, transparent); border-radius:var(--radius);
+      padding:18px; position:relative; overflow:hidden; box-shadow:var(--shadow);
+    }
+    .chip{
+      position:absolute; top:14px; right:14px; padding:8px 10px; font-size:12px; border-radius:999px; color:var(--text);
+      border:1px solid color-mix(in oklab, var(--accent) 40%, transparent);
+      background:radial-gradient(120px 40px at 20% 0%, rgba(72,255,155,.25), transparent 60%);
+      box-shadow:0 0 30px rgba(72,255,155,.15);
+    }
+
+    /* Tienda */
+    .section{ padding:36px 0 80px; }
+    .section h2{ font-size: clamp(22px, 3vw, 36px); margin:0 0 14px; }
+    .sub{ color:var(--muted); margin:0 0 28px; }
+
+    .grid{
+      display:grid; grid-template-columns:repeat(12, 1fr); gap:18px;
+    }
+    .card{
+      grid-column: span 4;
+      background:linear-gradient(180deg, rgba(13,18,32,.7), rgba(13,18,32,.5));
+      border:1px solid color-mix(in oklab, var(--neon) 15%, transparent); border-radius:var(--radius); overflow:hidden; position:relative;
+      transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+    }
+    .card:hover{ transform:translateY(-2px); box-shadow:0 16px 40px rgba(0,0,0,.35), 0 0 36px rgba(0,255,255,.15); border-color:color-mix(in oklab, var(--neon) 35%, transparent); }
+
+    .thumb{
+      height:200px; background:radial-gradient(160px 60px at 15% 20%, rgba(255,255,255,.15), transparent 65%),
+                 radial-gradient(260px 160px at 85% 30%, rgba(255,0,247,.2), transparent 55%),
+                 linear-gradient(120deg, #11182c, #0b1326);
+      position:relative;
+    }
+    .scanline{ position:absolute; inset:0; background:repeating-linear-gradient(0deg, rgba(255,255,255,.06) 0 1px, transparent 1px 3px); mix-blend-mode:overlay; }
+    .thumb canvas{ position:absolute; inset:0; width:100%; height:100%; }
+
+    .card-body{ padding:16px; }
+    .title{ font-weight:800; letter-spacing:.2px; display:flex; align-items:center; gap:10px; }
+    .badge{ font-size:11px; padding:4px 8px; border-radius:999px; border:1px solid color-mix(in oklab, var(--neon-2) 45%, transparent); color:var(--text);
+      background:radial-gradient(80px 30px at 20% 10%, rgba(255,0,247,.2), transparent 60%);
+    }
+    .desc{ color:var(--muted); margin:8px 0 14px; min-height:46px; }
+    .price{ font-weight:900; font-size:20px; }
+    .actions{ display:flex; gap:10px; align-items:center; margin-top:10px; }
+    .small{ font-size:13px; color:var(--muted); }
+
+    .cart-btn{
+      position:fixed; right:20px; bottom:20px; z-index:30; display:flex; align-items:center; gap:10px; padding:12px 14px; border-radius:14px;
+      background:linear-gradient(90deg, color-mix(in oklab, var(--neon) 25%, transparent), color-mix(in oklab, var(--neon-2) 25%, transparent));
+      color:var(--text); border:1px solid color-mix(in oklab, var(--neon) 40%, transparent); box-shadow:var(--shadow);
+    }
+    .cart-count{ background:var(--danger); padding:2px 8px; border-radius:999px; font-weight:800; }
+
+    .about{
+      display:grid; grid-template-columns: 1fr 1fr; gap:18px; align-items:center;
+      background:linear-gradient(180deg, rgba(10,18,36,.7), rgba(10,18,36,.5));
+      border:1px solid color-mix(in oklab, var(--neon) 15%, transparent); border-radius:var(--radius); padding:22px; box-shadow:var(--shadow);
+    }
+    .about p{ margin:0; color:var(--muted); }
+
+    footer{ padding:36px 0 64px; color:var(--muted); text-align:center; }
+
+    @media (max-width: 980px){
+      .hero{ grid-template-columns:1fr; }
+      .card{ grid-column: span 6; }
+    }
+    @media (max-width: 640px){
+      .card{ grid-column: span 12; }
+      .cta{ flex-direction:column; align-items:stretch; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="fx"></canvas>
+  <header>
+    <div class="wrap nav">
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <div class="neon" style="font-size:14px">El Cuarto Quinteto</div>
+          <div style="opacity:.8; font-weight:700; letter-spacing:.8px; font-size:12px">Developers .com</div>
+        </div>
+      </div>
+      <nav>
+        <a href="#tienda">Tienda</a>
+        <a href="#about">Nosotros</a>
+        <a href="#contacto">Contacto</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="hero">
+      <div>
+        <h1 class="neon">Tienda virtual de juegos y apps Android</h1>
+        <p>Somos <strong>El Cuarto Quinteto Developers</strong>, un grupo desarrollador de <strong>juegos Android</strong> y <strong>aplicaciones para Android</strong>. Esta es nuestra vitrina oficial: estética <em>neon</em>, rendimiento puro <strong>HTML5+Canvas</strong> y <strong>JavaScript</strong>.</p>
+        <div class="cta">
+          <button class="btn" onclick="scrollToId('tienda')">Ver la tienda</button>
+          <button class="btn ghost" onclick="scrollToId('about')">Conocer al equipo</button>
+        </div>
+      </div>
+      <div class="hero-card">
+        <span class="chip">100% JS Puro</span>
+        <canvas id="heroCanvas" width="640" height="360" aria-label="Demo canvas"></canvas>
+        <div class="small" style="margin-top:10px">Demo visual en tiempo real — trama neon con partículas.</div>
+      </div>
+    </section>
+
+    <section id="tienda" class="section">
+      <h2 class="neon">Nuestra tienda</h2>
+      <p class="sub">Placeholders listos para tus títulos, artes y enlaces finales. Integramos pasarela real cuando lo indiques.</p>
+      <div class="grid" id="storeGrid">
+        <!-- Cards generadas por JS para mantener el archivo limpio -->
+      </div>
+      <div class="small" style="margin-top:12px">* Los productos son demostrativos. Puedes reemplazar precios, descripciones y miniaturas.</div>
+    </section>
+
+    <section id="about" class="section">
+      <h2 class="neon">¿Quiénes somos?</h2>
+      <div class="about">
+        <div>
+          <p>
+            <strong>El Cuarto Quinteto Developers .com</strong> es un colectivo que crea experiencias móviles con alto enfoque en <em>game feel</em>, rendimiento y publicación rápida.
+            Trabajamos con <strong>Android nativo</strong>, motores ligeros y pipelines propios. ¿Aplicaciones utilitarias? También. ¿Prototipos veloces? Siempre.
+          </p>
+          <p style="margin-top:10px">¿Quieres que publiquemos tu idea? Escríbenos y te preparamos una <em>build</em> de prueba en días.</p>
+        </div>
+        <div>
+          <ul>
+            <li>⚡ Render en Canvas + animaciones fluidas</li>
+            <li>🎮 Juegos Android listos para Play</li>
+            <li>📱 Apps utilitarias y herramientas</li>
+            <li>🧪 Prototipado exprés y pruebas A/B</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="contacto" class="section">
+      <h2 class="neon">Contacto</h2>
+      <p class="sub">Escríbenos a <a href="#" onclick="alert('Demo: reemplaza con tu correo o formulario')">contacto@elcuartoqd.com</a> o envíanos un mensaje por redes.</p>
+      <div class="small">© <span id="year"></span> El Cuarto Quinteto Developers .com — Todos los derechos reservados.</div>
+    </section>
+  </main>
+
+  <button class="cart-btn" onclick="alert('Demo — carrito placeholder')" aria-label="Carrito"><span>🛒 Carrito</span><span class="cart-count" id="cartCount">0</span></button>
+
+  <footer>
+    Hecho con ♥, HTML5 Canvas y JavaScript puro.
+  </footer>
+
+  <script>
+    const yearEl = document.getElementById('year');
+    yearEl.textContent = new Date().getFullYear();
+
+    /***********************
+     * UTILIDADES GENERALES
+     ***********************/
+    function scrollToId(id){
+      const el = document.getElementById(id);
+      if(el){ el.scrollIntoView({behavior:'smooth', block:'start'}); }
+    }
+
+    /***********************
+     * BACKGROUND CANVAS FX
+     ***********************/
+    const fx = document.getElementById('fx');
+    const ctx = fx.getContext('2d');
+    let W, H, DPR = Math.min(2, window.devicePixelRatio || 1);
+    let nodes = [];
+
+    function resizeFx(){
+      W = fx.width = Math.floor(innerWidth * DPR);
+      H = fx.height = Math.floor(innerHeight * DPR);
+    }
+
+    function initFx(){
+      nodes = Array.from({length: 90}, () => ({
+        x: Math.random()*W, y: Math.random()*H,
+        vx:(Math.random()-.5)*.3, vy:(Math.random()-.5)*.3,
+        r: 1 + Math.random()*2
+      }));
+    }
+
+    function drawFx(){
+      ctx.clearRect(0,0,W,H);
+      // fondo sutil
+      const grd = ctx.createRadialGradient(W*0.1, H*0.1, 0, W*0.1, H*0.1, Math.max(W,H)*0.9);
+      grd.addColorStop(0, 'rgba(0,255,255,0.06)');
+      grd.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = grd; ctx.fillRect(0,0,W,H);
+
+      // líneas y puntos
+      for(let i=0;i<nodes.length;i++){
+        const a = nodes[i];
+        a.x += a.vx; a.y += a.vy;
+        if(a.x<0||a.x>W) a.vx*=-1; if(a.y<0||a.y>H) a.vy*=-1;
+      }
+
+      for(let i=0;i<nodes.length;i++){
+        const a = nodes[i];
+        for(let j=i+1;j<nodes.length;j++){
+          const b = nodes[j];
+          const dx=a.x-b.x, dy=a.y-b.y; const d = Math.hypot(dx,dy);
+          if(d<120){
+            const o = 1 - d/120; // opacidad
+            ctx.strokeStyle = `rgba(0,255,255,${0.11*o})`;
+            ctx.lineWidth = o * 1.1;
+            ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+          }
+        }
+      }
+      for(const p of nodes){
+        ctx.fillStyle = 'rgba(255,0,247,0.6)';
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fill();
+      }
+      requestAnimationFrame(drawFx);
+    }
+
+    window.addEventListener('resize', ()=>{ resizeFx(); });
+    resizeFx(); initFx(); drawFx();
+
+    /***************************
+     * HERO CANVAS (DEMO NEON)
+     ***************************/
+    const hero = document.getElementById('heroCanvas');
+    const hctx = hero.getContext('2d');
+    const HS = { t:0 };
+
+    function heroDraw(){
+      const w = hero.width, h = hero.height;
+      hctx.clearRect(0,0,w,h);
+      // trama neon
+      for(let y=0;y<h;y+=20){
+        const hue = (y/2 + HS.t) % 360;
+        hctx.strokeStyle = `hsla(${hue}, 100%, 60%, 0.25)`;
+        hctx.beginPath();
+        for(let x=0;x<w;x+=20){
+          const offset = Math.sin((x+HS.t)*0.02)*10;
+          hctx.lineTo(x, y + offset);
+        }
+        hctx.stroke();
+      }
+      // texto
+      hctx.font = '700 48px system-ui, sans-serif';
+      hctx.fillStyle = 'rgba(255,255,255,0.85)';
+      hctx.fillText('Neon Canvas Demo', 20, h - 28);
+      HS.t += 1.6; requestAnimationFrame(heroDraw);
+    }
+    heroDraw();
+
+    /**********************
+     * TIENDA — DATA MOCK
+     **********************/
+    const productos = [
+      {
+        id:'quispe',
+        nombre:'Quispe-Survivor.io',
+        desc:'Supervivencia arcade con hordas infinitas, power-ups locos y control táctil perfecto.',
+        precio: '9.99',
+        badge:'JUEGO ANDROID'
+      },
+      {
+        id:'myth',
+        nombre:'Myth Slayer',
+        desc:'Caza criaturas míticas con combos, forja y progresión estilo roguelite para sesiones rápidas.',
+        precio: '7.99',
+        badge:'JUEGO ANDROID'
+      },
+      {
+        id:'simple',
+        nombre:'Simple Game',
+        desc:'Minimalista, adictivo y pulido. Ideal para benchmark de rendimiento y tutoriales.',
+        precio: 'Gratis',
+        badge:'DEMO / PLACEHOLDER'
+      }
+    ];
+
+    const grid = document.getElementById('storeGrid');
+    const cartCount = document.getElementById('cartCount');
+    let cart = 0;
+
+    function createThumbCanvas(seed){
+      const c = document.createElement('canvas');
+      c.width = 800; c.height = 400; const cx = c.getContext('2d');
+      // fondo gradiente neon
+      const g = cx.createLinearGradient(0,0,c.width,c.height);
+      g.addColorStop(0, 'rgba(0,255,255,0.25)');
+      g.addColorStop(1, 'rgba(255,0,247,0.25)');
+      cx.fillStyle = g; cx.fillRect(0,0,c.width,c.height);
+      // shapes
+      cx.globalCompositeOperation = 'lighter';
+      for(let i=0;i<60;i++){
+        const x = (Math.sin(i*seed)*.5+.5)*c.width;
+        const y = (Math.cos(i*seed)*.5+.5)*c.height;
+        cx.fillStyle = `rgba(0,255,255,${Math.random()*0.18+0.05})`;
+        cx.beginPath(); cx.arc(x,y, Math.random()*40+10, 0, Math.PI*2); cx.fill();
+      }
+      cx.globalCompositeOperation = 'source-over';
+      // título fantasma
+      cx.font = '700 60px system-ui, sans-serif';
+      cx.fillStyle = 'rgba(255,255,255,0.7)';
+      cx.fillText('Placeholder', 30, 90);
+      return c;
+    }
+
+    function makeCard(p){
+      const card = document.createElement('article');
+      card.className = 'card';
+      card.innerHTML = `
+        <div class="thumb">
+          <div class="scanline"></div>
+        </div>
+        <div class="card-body">
+          <div class="title">${p.nombre} <span class="badge">${p.badge}</span></div>
+          <div class="desc">${p.desc}</div>
+          <div class="actions">
+            <button class="btn" data-id="${p.id}">Añadir al carrito</button>
+            <span class="price">${p.precio === 'Gratis' ? 'Gratis' : '$'+p.precio}</span>
+          </div>
+        </div>`;
+
+      // Canvas miniatura personalizado por item
+      const t = createThumbCanvas(p.id.length + p.nombre.length);
+      card.querySelector('.thumb').appendChild(t);
+
+      card.querySelector('button').addEventListener('click', ()=>{
+        cart++; cartCount.textContent = cart; flashCart();
+      });
+      return card;
+    }
+
+    function flashCart(){
+      const btn = document.querySelector('.cart-btn');
+      btn.animate([
+        { transform:'translateY(0)' },
+        { transform:'translateY(-6px)' },
+        { transform:'translateY(0)' }
+      ], { duration:260, easing:'cubic-bezier(.2,.9,.2,1)' });
+    }
+
+    productos.forEach(p => grid.appendChild(makeCard(p)));
+  </script>
+</body>
+</html>
